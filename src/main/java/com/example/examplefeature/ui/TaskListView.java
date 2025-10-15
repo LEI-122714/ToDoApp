@@ -1,13 +1,16 @@
 package com.example.examplefeature.ui;
 
 import com.example.base.ui.component.ViewToolbar;
+import com.example.examplefeature.PdfExporter; // 导入 PdfExporter
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
+import com.vaadin.flow.component.UI; // 导入 UI
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.icon.VaadinIcon; // 导入 VaadinIcon
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
@@ -16,9 +19,11 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
+import java.io.IOException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Base64; // 导入 Base64
 import java.util.Optional;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
@@ -29,14 +34,18 @@ import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRe
 class TaskListView extends Main {
 
     private final TaskService taskService;
+    private final PdfExporter pdfExporter; // 注入依赖
 
     final TextField description;
     final DatePicker dueDate;
     final Button createBtn;
     final Grid<Task> taskGrid;
+    final Button exportPdfBtn; // 声明导出按钮
 
-    TaskListView(TaskService taskService) {
+    // 构造函数中同时注入 TaskService 和 PdfExporter
+    TaskListView(TaskService taskService, PdfExporter pdfExporter) {
         this.taskService = taskService;
+        this.pdfExporter = pdfExporter;
 
         description = new TextField();
         description.setPlaceholder("What do you want to do?");
@@ -50,6 +59,10 @@ class TaskListView extends Main {
 
         createBtn = new Button("Create", event -> createTask());
         createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        // 新增：PDF 导出按钮，点击时调用 exportPdf 方法
+        exportPdfBtn = new Button("Export PDF", VaadinIcon.FILE_TEXT.create(), event -> exportPdf());
+        exportPdfBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(getLocale())
                 .withZone(ZoneId.systemDefault());
@@ -67,7 +80,8 @@ class TaskListView extends Main {
         addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,
                 LumoUtility.Padding.MEDIUM, LumoUtility.Gap.SMALL);
 
-        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn)));
+        // 将新的导出按钮添加到工具栏
+        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn, exportPdfBtn)));
         add(taskGrid);
     }
 
@@ -78,6 +92,37 @@ class TaskListView extends Main {
         dueDate.clear();
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+    }
+
+    // 新增：使用 Data URI 触发 PDF 下载的方法
+    private void exportPdf() {
+        try {
+            // 1. 在服务器端生成 PDF 字节数组
+            byte[] pdfBytes = pdfExporter.exportAllTasksToPdf();
+
+            // 2. 将字节数组转换为 Base64 字符串
+            String base64Content = Base64.getEncoder().encodeToString(pdfBytes);
+
+            String mimeType = "application/pdf";
+            String fileName = "tasks-report.pdf";
+
+            // 3. 执行 JavaScript 触发下载 (最简洁的非 StreamResource 方案)
+            // 该 JS 会在浏览器中创建临时 a 标签，设置 Data URI，模拟点击并移除 a 标签
+            UI.getCurrent().getPage().executeJs("""
+                const link = document.createElement('a');
+                link.href = 'data:' + $0 + ';base64,' + $1;
+                link.download = $2;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            """, mimeType, base64Content, fileName); // $0, $1, $2 是参数占位符
+
+        } catch (IOException e) {
+            // 导出失败时显示错误通知
+            Notification.show("PDF 导出失败: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            e.printStackTrace();
+        }
     }
 
 }
