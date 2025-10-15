@@ -1,6 +1,7 @@
 package com.example.examplefeature.ui;
 
 import com.example.base.ui.component.ViewToolbar;
+import com.example.examplefeature.ReminderSound;
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
 import com.vaadin.flow.component.button.Button;
@@ -8,8 +9,10 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -69,6 +72,26 @@ class TaskListView extends Main {
 
         add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn)));
         add(taskGrid);
+
+        taskGrid.addComponentColumn(task -> {
+            VerticalLayout layout = new VerticalLayout();
+            layout.setPadding(false);
+            layout.setSpacing(false);
+
+
+
+            // Lembrete visual e sonoro
+            if (task.isDueSoon(1)) { // tarefa vence amanhã
+                Span reminder = new Span("Vence amanhã!");
+                reminder.getStyle().set("color", "orange").set("font-weight", "bold");
+                layout.add(reminder);
+
+                // Tocar som
+                ReminderSound.playReminder();
+            }
+
+            return layout;
+        }).setHeader("Reminder");
     }
 
     private void createTask() {
