@@ -2,6 +2,7 @@ package com.example.examplefeature;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
 
     TaskService(TaskRepository taskRepository) {
+
         this.taskRepository = taskRepository;
     }
 
@@ -30,7 +32,15 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<Task> list(Pageable pageable) {
+
         return taskRepository.findAllBy(pageable).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Task> findAll() {
+        // 使用 TaskRepository 的 findAll 方法，并传入排序参数
+        // 按 creationDate 降序排列
+        return taskRepository.findAll(Sort.by(Sort.Direction.DESC, "creationDate"));
     }
 
 }
