@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.button.ButtonVariant;
 
 import com.example.base.ui.component.ViewToolbar;
+import com.example.examplefeature.QRCodeGenerator;
 import com.example.examplefeature.PdfExporter; // 导入 PdfExporter
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
@@ -17,6 +18,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.icon.VaadinIcon; // 导入 VaadinIcon
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -32,6 +34,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Base64; // 导入 Base64
 import java.util.Optional;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Image;
+
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
 
@@ -90,6 +97,51 @@ class TaskListView extends Main {
         // 将新的导出按钮添加到工具栏
         add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn, exportPdfBtn)));
         add(taskGrid);
+
+
+        taskGrid.addComponentColumn(task -> {
+            Button qrButton = new Button("QR Code", e -> {
+                // Construir conteúdo robusto do QR
+                StringBuilder sb = new StringBuilder();
+                sb.append("Task ID: ").append(task.getId() == null ? "N/A" : task.getId()).append("\n");
+                sb.append("Description: ").append(task.getDescription() == null ? "" : task.getDescription()).append("\n");
+                if (task.getDueDate() != null) {
+                    sb.append("Due Date: ").append(task.getDueDate().toString()).append("\n");
+                }
+                sb.append("Created: ").append(task.getCreationDate() == null ? "N/A" : task.getCreationDate().toString());
+
+                String qrText = sb.toString();
+
+                // DEBUG: mostra o texto numa notificação curta (útil para confirmar que não está vazio)
+                Notification note = Notification.show(qrText, 3000, Notification.Position.BOTTOM_END);
+                note.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+
+                // Gerar QR e mostrar num dialog
+                String qrBase64 = QRCodeGenerator.generateQRCodeImage(qrText, 300, 300);
+
+                Image qrImage = new Image(qrBase64, "QR Code");
+                qrImage.setWidth("260px");
+                qrImage.setHeight("260px");
+
+                VerticalLayout content = new VerticalLayout();
+                content.setPadding(false);
+                content.setSpacing(false);
+                content.add(qrImage);
+
+                // Opcional: mostra também o texto em texto pré-formatado (útil para cópia)
+                Pre pre = new Pre(qrText);
+                pre.getStyle().set("white-space", "pre-wrap");
+                content.add(pre);
+
+                Dialog dialog = new Dialog(content);
+                dialog.setWidth("320px");
+                dialog.setHeight("420px");
+                dialog.setCloseOnOutsideClick(true);
+                dialog.open();
+            });
+            qrButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            return qrButton;
+        }).setHeader("QR Code");
         taskGrid.addComponentColumn(task -> {
             Button emailButton = new Button("Enviar Email", e -> {
                 Dialog dialog = new Dialog();
