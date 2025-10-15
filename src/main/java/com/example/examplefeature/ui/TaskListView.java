@@ -1,5 +1,12 @@
 package com.example.examplefeature.ui;
 
+import com.example.examplefeature.EmailService;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.button.ButtonVariant;
+
 import com.example.base.ui.component.ViewToolbar;
 import com.example.examplefeature.PdfExporter; // 导入 PdfExporter
 import com.example.examplefeature.Task;
@@ -83,6 +90,63 @@ class TaskListView extends Main {
         // 将新的导出按钮添加到工具栏
         add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn, exportPdfBtn)));
         add(taskGrid);
+        taskGrid.addComponentColumn(task -> {
+            Button emailButton = new Button("Enviar Email", e -> {
+                Dialog dialog = new Dialog();
+                dialog.setHeaderTitle("Enviar tarefa por email");
+
+                // Apenas o campo de destinatário
+                EmailField emailField = new EmailField("Destinatário");
+                emailField.setPlaceholder("exemplo@email.com");
+                emailField.setWidthFull();
+
+                // Botão de envio
+                Button sendButton = new Button("Enviar", sendEvent -> {
+                    if (emailField.getValue() == null || emailField.getValue().isBlank()) {
+                        Notification.show("Introduza um email de destino válido.", 3000, Notification.Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+
+                    // Corpo do e-mail
+                    String body = """
+                    Task details:
+                    -----------------------
+                    Description: %s
+                    Due Date: %s
+                    Creation Date: %s
+                    """.formatted(
+                            task.getDescription(),
+                            task.getDueDate() != null ? task.getDueDate() : "Sem data",
+                            task.getCreationDate()
+                    );
+
+                    try {
+                        EmailService.sendEmail(
+                                emailField.getValue(),
+                                "Tarefa Partilhada: " + task.getDescription(),
+                                body
+                        );
+
+                        Notification.show("Email enviado com sucesso!", 4000, Notification.Position.BOTTOM_END)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        dialog.close();
+                    } catch (Exception ex) {
+                        Notification.show("Erro ao enviar email: " + ex.getMessage(), 4000, Notification.Position.BOTTOM_END)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                });
+                sendButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+                // Layout do diálogo
+                VerticalLayout layout = new VerticalLayout(emailField, sendButton);
+                layout.setPadding(false);
+                dialog.add(layout);
+                dialog.open();
+            });
+            emailButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            return emailButton;
+        }).setHeader("Email");
     }
 
     private void createTask() {
@@ -92,6 +156,8 @@ class TaskListView extends Main {
         dueDate.clear();
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+
     }
 
     // 新增：使用 Data URI 触发 PDF 下载的方法
