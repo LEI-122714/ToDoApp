@@ -21,13 +21,14 @@ public class TaskService {
     }
 
     @Transactional
-    public void createTask(String description, @Nullable LocalDate dueDate) {
+    public Task createTask(String description, @Nullable LocalDate dueDate) {
         if ("fail".equals(description)) {
             throw new RuntimeException("This is for testing the error handler");
         }
         var task = new Task(description, Instant.now());
         task.setDueDate(dueDate);
         taskRepository.saveAndFlush(task);
+        return task;
     }
 
     @Transactional(readOnly = true)
