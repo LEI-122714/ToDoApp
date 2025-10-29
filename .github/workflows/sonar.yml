@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+      - reminder_artur
+      - mail_mafas
+      - QR_joana
+      - Jun's-Branch-PDF
   pull_request:
     types: [opened, synchronize, reopened]
 
