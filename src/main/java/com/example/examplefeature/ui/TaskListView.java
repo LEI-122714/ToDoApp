@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.button.ButtonVariant;
 
 import com.example.base.ui.component.ViewToolbar;
+import com.example.examplefeature.ReminderSound;
 import com.example.examplefeature.QRCodeGenerator;
 import com.example.examplefeature.PdfExporter; // 导入 PdfExporter
 import com.example.examplefeature.Task;
@@ -18,10 +19,12 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.icon.VaadinIcon; // 导入 VaadinIcon
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -98,6 +101,24 @@ class TaskListView extends Main {
         add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn, exportPdfBtn)));
         add(taskGrid);
 
+        taskGrid.addComponentColumn(task -> {
+            VerticalLayout layout = new VerticalLayout();
+            layout.setPadding(false);
+            layout.setSpacing(false);
+
+
+
+            // Lembrete visual e sonoro
+            if (task.isDueSoon(1)) { // tarefa vence amanhã
+                Span reminder = new Span("Vence amanhã!");
+                reminder.getStyle().set("color", "orange").set("font-weight", "bold");
+                layout.add(reminder);
+
+
+            }
+
+            return layout;
+        }).setHeader("Reminder");
 
         taskGrid.addComponentColumn(task -> {
             Button qrButton = new Button("QR Code", e -> {
@@ -202,13 +223,16 @@ class TaskListView extends Main {
     }
 
     private void createTask() {
-        taskService.createTask(description.getValue(), dueDate.getValue());
+        Task newTask=taskService.createTask(description.getValue(), dueDate.getValue());
         taskGrid.getDataProvider().refreshAll();
         description.clear();
         dueDate.clear();
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
+        if (newTask.isDueSoon(1)) {
+            ReminderSound.playReminder();
+        }
 
     }
 
