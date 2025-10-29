@@ -1,6 +1,12 @@
 # App README
 
 - [ ] TODO Replace or update this README with instructions relevant to your application
+- [ ] Comentário para fazer push para ver o sonar a funcionar
+
+## Link para o Vídeo do Youtube
+
+https://youtu.be/lw1Jw900HLc
+
 
 ## Project Structure
 
@@ -84,3 +90,37 @@ The [Getting Started](https://vaadin.com/docs/latest/getting-started) guide will
 App implementation. You'll learn how to set up your development environment, understand the project 
 structure, and find resources to help you add muscles to your skeleton — transforming it into a fully-featured 
 application.
+
+## CI/CD – GitHub Actions
+
+Este projeto utiliza um workflow automático configurado com **GitHub Actions** para criar o ficheiro `.jar` de forma autónoma.
+
+O workflow é executado sempre que há um *push* na branch principal (`main`).
+
+Passos executados:
+1. Configuração do ambiente Java 24 (via `actions/setup-java`);
+2. Execução do comando `mvn clean package` para gerar o artefacto `.jar`;
+3. Publicação do `.jar` como artefacto no GitHub Actions;
+4. Cópia do ficheiro `.jar` para a raiz do repositório.
+
+Excerto do ficheiro `.github/workflows/build.yml`:
+
+```yaml
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - run: mvn clean package -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: todoapp-jar
+          path: target/*.jar
+

@@ -5,6 +5,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "task")
@@ -82,5 +83,12 @@ public class Task {
         // with lots of entities in them, returning the same hashcode should not be a
         // problem.
         return getClass().hashCode();
+    }
+
+    // Retorna true se a tarefa estiver vencendo em até 'daysAhead' dias
+    public boolean isDueSoon(int daysAhead) {
+        if (dueDate == null) return false; // sem data de vencimento
+        long daysUntilDue = ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
+        return daysUntilDue >= 0 && daysUntilDue <= daysAhead;
     }
 }
