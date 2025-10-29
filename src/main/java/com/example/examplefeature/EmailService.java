@@ -1,3 +1,5 @@
+// Teste Sonar 
+
 package com.example.examplefeature;
 
 import jakarta.mail.*;
