@@ -15,7 +15,7 @@ import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class QRCodeGenerator {
+public class QRCodeGenerator  //erro teste
 
     /**
      * Gera uma data URL (data:image/png;base64,...) com a imagem PNG do QR Code.
