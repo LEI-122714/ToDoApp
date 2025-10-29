@@ -114,8 +114,7 @@ class TaskListView extends Main {
                 reminder.getStyle().set("color", "orange").set("font-weight", "bold");
                 layout.add(reminder);
 
-                // Tocar som
-                ReminderSound.playReminder();
+
             }
 
             return layout;
@@ -224,13 +223,16 @@ class TaskListView extends Main {
     }
 
     private void createTask() {
-        taskService.createTask(description.getValue(), dueDate.getValue());
+        Task newTask=taskService.createTask(description.getValue(), dueDate.getValue());
         taskGrid.getDataProvider().refreshAll();
         description.clear();
         dueDate.clear();
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
+        if (newTask.isDueSoon(1)) {
+            ReminderSound.playReminder();
+        }
 
     }
 
