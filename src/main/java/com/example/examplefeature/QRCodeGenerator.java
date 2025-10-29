@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
-
+//teste sonar
 public class QRCodeGenerator {
 
     /**
