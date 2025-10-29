@@ -3,6 +3,8 @@ package com.example.examplefeature;
 import javazoom.jl.player.Player;
 import java.io.InputStream;
 
+// Comentário para fazer uma commit e testar o SonarQube
+
 public class ReminderSound {
 
     /**
