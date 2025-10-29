@@ -1,48 +1,37 @@
-name: SonarCloud Analysis
-
 on:
+  # Trigger analysis when pushing in master or pull requests, and when creating
+  # a pull request.
   push:
     branches:
       - main
-      - reminder_artur
-      - mail_mafas
-      - QR_joana
-      - Jun's-Branch-PDF
   pull_request:
     types: [opened, synchronize, reopened]
-
+name: Main Workflow
 jobs:
-  build:
-    name: Build and analyze on SonarCloud
+  sonarqube:
     runs-on: ubuntu-latest
-
     steps:
-      # Faz checkout do código com histórico completo
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # IMPORTANTE: necessário para Sonar ver histórico e branches
+          # Disabling shallow clone is recommended for improving relevancy of reporting.
+          fetch-depth: 0
 
-      # Instala o Java (ajusta a versão se o teu projeto usar outra)
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: maven
-
-      # Cache para SonarCloud (acelera builds)
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-
-      # Compila o projeto e executa a análise no SonarCloud
-      - name: Build and analyze with SonarCloud
+      # Triggering SonarQube analysis as results of it are required by Quality Gate check.
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # necessário para PR decoration
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # token criado no SonarCloud
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-             -Dsonar.projectKey=LEI-122714_ToDoApp \
-             -Dsonar.organization=lei-122714
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Check the Quality Gate status.
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          pollingTimeoutSec: 600
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Optionally you can use the output from the Quality Gate in another step.
+      # The possible outputs of the `quality-gate-status` variable are `PASSED`, `WARN` or `FAILED`.
+      - name: "Example show SonarQube Quality Gate Status value"
+        run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
