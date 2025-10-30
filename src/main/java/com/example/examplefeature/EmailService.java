@@ -6,7 +6,8 @@ import jakarta.mail.internet.MimeMessage;
 
 import java.util.Properties;
 
-public class EmailService //erro
+public class EmailService {
+    private static String= //erro
 
     // ⚙️ Configurações básicas do servidor SMTP
     // (substitui pelos teus dados, ex: Gmail SMTP)
