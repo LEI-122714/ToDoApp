@@ -1,7 +1,6 @@
 # App README
 
 - [ ] TODO Replace or update this README with instructions relevant to your application
-- [ ] Comentário para fazer push para ver o sonar a funcionar
 
 ## Link para o Vídeo do Youtube
 
