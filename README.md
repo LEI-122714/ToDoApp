@@ -1,7 +1,7 @@
 # App README
 
 - [ ] TODO Replace or update this README with instructions relevant to your application
-- [ ] teste sonar workflow
+- [ ] teste sonar workflow 2
 
 ## Link para o Vídeo do Youtube
 
