@@ -1,4 +1,0 @@
-{
-  "name": "Java Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/java:17"
-}
