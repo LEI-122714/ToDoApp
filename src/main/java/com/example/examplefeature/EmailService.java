@@ -7,10 +7,8 @@ import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 
 public class EmailService {
-    private static String= //erro
 
-    // ⚙️ Configurações básicas do servidor SMTP
-    // (substitui pelos teus dados, ex: Gmail SMTP)
+
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
     private static final String USERNAME = "marianasoftware5@gmail.com";
